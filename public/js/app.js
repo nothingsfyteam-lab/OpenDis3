@@ -38,7 +38,10 @@
       body: opts.body ? JSON.stringify(opts.body) : undefined
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Request failed');
+    if (!res.ok) {
+      console.error('API Error:', url, data.error || 'Request failed');
+      throw new Error(data.error || 'Request failed');
+    }
     return data;
   }
 
@@ -197,6 +200,20 @@
         document.body.classList.remove('mobile-chat-active');
         currentContext = { type: 'home', id: null, data: null };
       }
+    }
+
+    function renderPublicVoiceUsers(users) {
+      const container = document.getElementById('public-voice-users');
+      const countEl = document.getElementById('public-voice-count');
+      if (!container) return;
+
+      if (countEl) countEl.textContent = users.length;
+
+      container.innerHTML = users.map(u => `
+        <div class="user-avatar-sm" title="${esc(u.username)}" style="${u.avatar ? `background-image:url(${u.avatar});background-size:cover;` : ''}">
+          ${u.avatar ? '' : (u.username || 'U')[0].toUpperCase()}
+        </div>
+      `).join('');
     }
 
     // --- Direct Call Signaling ---
@@ -505,7 +522,7 @@
       try {
         // Join logic (if needed, otherwise socket.emit handles it)
         await api(`/api/channels/${id}/join`, { method: 'POST' });
-        const messages = await api(`/api/messages/channel/${id}`);
+        const messages = await api(`/api/channels/${id}/messages`);
         renderMessages(messages);
         socket.emit('join-channel', id);
       } catch (e) {

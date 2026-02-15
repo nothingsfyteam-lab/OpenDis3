@@ -146,5 +146,3 @@ try { db.exec("ALTER TABLE channels ADD COLUMN server_id TEXT REFERENCES servers
 try { db.exec("ALTER TABLE server_members ADD COLUMN role_id TEXT REFERENCES roles(id) ON DELETE SET NULL"); } catch (e) { }
 
 module.exports = db;
-
-module.exports = db;
