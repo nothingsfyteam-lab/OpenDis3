@@ -1148,6 +1148,33 @@ body {
   right: 20px;
   z-index: 1000;
   animation: slide-in-bottom 0.3s ease-out;
+  max-width: calc(100% - 40px);
+}
+
+@media (max-width: 600px) {
+  #active-call-overlay {
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+  }
+  
+  #active-call-overlay > div {
+    width: 100% !important;
+    border-radius: 0 !important;
+  }
+
+  .call-controls {
+    padding: 10px;
+    gap: 12px;
+  }
+
+  .call-btn {
+    width: 48px;
+    height: 48px;
+  }
 }
 
 @keyframes slide-in-bottom {
@@ -1188,6 +1215,37 @@ body {
   object-fit: cover;
   background: #222;
   z-index: 10;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+#local-video:hover {
+  border-color: var(--accent);
+}
+
+#local-video.mirrored {
+  transform: scaleX(-1);
+}
+
+#local-video.pip-swapped {
+  width: 100%;
+  height: 100%;
+  bottom: 0;
+  right: 0;
+  border-radius: 0;
+  border: none;
+}
+
+#remote-video.pip-swapped {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 120px;
+  height: 90px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  z-index: 10;
+  object-fit: cover;
 }
 
 #local-video.mirrored {
