@@ -993,6 +993,42 @@ body {
     font-size: 1.5rem;
     margin-right: 12px;
   }
+
+  /* Mobile Chat View Logic */
+  body.mobile-chat-active .nav-sidebar,
+  body.mobile-chat-active .server-rail {
+    display: none !important;
+  }
+
+  body.mobile-chat-active #main-app {
+    grid-template-columns: 1fr;
+  }
+
+  body.mobile-chat-active #chat-view {
+    display: flex !important;
+    width: 100%;
+    z-index: 2000;
+  }
+
+  /* Mobile Back Button */
+  #mobile-back-btn {
+    display: none;
+    margin-right: 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  body.mobile-chat-active #mobile-back-btn {
+    display: block;
+  }
+
+  body.mobile-chat-active .chat-banner::before {
+    display: none;
+    /* Hide burger menu when in chat */
+  }
 }
 
 /* Modals & Call UI */

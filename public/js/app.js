@@ -185,6 +185,20 @@
       if (currentServerId) loadChannels(currentServerId);
     });
 
+    // Mobile View Helpers
+    function showChatMobile() {
+      if (window.innerWidth <= 800) {
+        document.body.classList.add('mobile-chat-active');
+      }
+    }
+
+    function showSidebarMobile() {
+      if (window.innerWidth <= 800) {
+        document.body.classList.remove('mobile-chat-active');
+        currentContext = { type: 'home', id: null, data: null };
+      }
+    }
+
     // --- Direct Call Signaling ---
     socket.on('incoming-call', async (data) => {
       if (callTargetId && callTargetId === data.from && peerConnectionCall) {
@@ -471,9 +485,12 @@
       currentContext = { type: 'channel', id: id, data: { id, name, type: 'text' } };
       updateActiveNavState();
 
+      // Switch view
       document.getElementById('welcome-view').style.display = 'none';
       document.getElementById('friends-view').style.display = 'none';
       document.getElementById('chat-view').style.display = 'flex';
+
+      showChatMobile(); // <--- Mobile switch
 
       document.getElementById('header-title').textContent = name;
       document.querySelector('.hashtag').textContent = '#';
@@ -877,6 +894,9 @@
     document.getElementById('welcome-view').style.display = 'none';
     document.getElementById('friends-view').style.display = 'none';
     document.getElementById('chat-view').style.display = 'flex';
+
+    showChatMobile(); // <--- Mobile switch
+
     document.getElementById('header-title').textContent = username;
     document.querySelector('.hashtag').textContent = '@';
     document.getElementById('join-voice-btn').style.display = 'none';
@@ -911,6 +931,9 @@
 
     document.getElementById('friends-view').style.display = 'none';
     document.getElementById('chat-view').style.display = 'flex';
+
+    showChatMobile(); // <--- Mobile switch
+
     document.getElementById('header-title').textContent = name;
     document.querySelector('.hashtag').innerHTML = `
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;">
