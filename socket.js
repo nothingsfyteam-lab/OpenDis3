@@ -147,7 +147,8 @@ module.exports = function (io) {
           from: userId,
           callerName: caller.username,
           callerAvatar: caller.avatar,
-          signal: data.signal // Initial Offer
+          signal: data.signal, // Initial Offer
+          withVideo: data.withVideo
         });
       }
     });

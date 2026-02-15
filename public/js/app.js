@@ -1515,11 +1515,17 @@
     peerConnectionCall.ontrack = (event) => {
       console.log('Received remote track:', event.track.kind);
       const remoteVideo = document.getElementById('remote-video');
-      const remoteStream = event.streams[0];
 
-      if (remoteVideo && remoteStream) {
-        console.log('Setting remote video stream');
-        remoteVideo.srcObject = remoteStream;
+      // Use existing stream if available, otherwise create one
+      if (!remoteVideo.srcObject) {
+        remoteVideo.srcObject = new MediaStream();
+      }
+
+      const remoteStream = remoteVideo.srcObject;
+      remoteStream.addTrack(event.track);
+
+      if (remoteVideo) {
+        console.log('Attaching remote track to video element');
         remoteVideo.style.display = 'block';
         remoteVideo.style.width = '100%';
         remoteVideo.style.height = '100%';
@@ -1529,7 +1535,7 @@
         remoteVideo.play().then(() => {
           console.log('Remote video playing');
         }).catch(e => {
-          console.error('Remote video play failed:', e);
+          console.warn('Remote video play failed (expected if no interaction):', e);
           // Try playing again after user interaction
           document.addEventListener('click', function playVideo() {
             remoteVideo.play().catch(() => { });
@@ -1559,6 +1565,14 @@
         showNotification('Connection Lost', 'The call connection was lost', 'error');
         endCall();
       }
+    };
+
+    peerConnectionCall.oniceconnectionstatechange = () => {
+      console.log('ICE Connection state:', peerConnectionCall.iceConnectionState);
+    };
+
+    peerConnectionCall.onicegatheringstatechange = () => {
+      console.log('ICE Gathering state:', peerConnectionCall.iceGatheringState);
     };
 
     peerConnectionCall.onnegotiationneeded = () => {
@@ -1701,11 +1715,20 @@
       });
       const screenTrack = screenStream.getVideoTracks()[0];
 
-      if (peerConnectionCall) {
+      if (peerConnectionCall && screenTrack) {
         const sender = peerConnectionCall.getSenders().find(s => s.track?.kind === 'video');
         if (sender) {
           await sender.replaceTrack(screenTrack);
-          console.log('Screen track added to peer connection');
+          console.log('Screen track replaced existing video track');
+        } else {
+          console.log('No video sender found, adding screen track as new track');
+          peerConnectionCall.addTrack(screenTrack, localStreamCall || new MediaStream([screenTrack]));
+          // Renegotiate
+          peerConnectionCall.createOffer().then(offer => {
+            return peerConnectionCall.setLocalDescription(offer);
+          }).then(() => {
+            socket.emit('call-user', { to: callTargetId, signal: peerConnectionCall.localDescription, withVideo: true });
+          }).catch(e => console.error('Renegotiation failed:', e));
         }
       }
 
