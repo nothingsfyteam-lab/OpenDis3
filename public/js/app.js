@@ -62,13 +62,23 @@
   }
 
   function showAuth() {
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('main-app').classList.add('hidden');
+    console.log('[AUTH] Showing auth screen');
+    const authScreen = document.getElementById('auth-screen');
+    const mainApp = document.getElementById('main-app');
+
+    authScreen.style.display = 'flex';
+    mainApp.style.display = 'none'; // Explicitly hide main app
+    mainApp.classList.add('hidden');
   }
 
   function showApp() {
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('main-app').classList.remove('hidden');
+    console.log('[AUTH] Showing main app');
+    const authScreen = document.getElementById('auth-screen');
+    const mainApp = document.getElementById('main-app');
+
+    authScreen.style.display = 'none';
+    mainApp.style.display = 'flex'; // Explicitly show main app
+    mainApp.classList.remove('hidden');
 
     // Update User Area
     updateUserArea();
