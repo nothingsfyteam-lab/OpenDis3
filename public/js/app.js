@@ -708,40 +708,55 @@
   };
 
   // --- Auth & Modals ---
-  // Login/Reg handlers...
-  document.getElementById('login-btn').onclick = async () => {
-    const u = document.getElementById('login-username').value;
-    const p = document.getElementById('login-password').value;
-    try {
-      currentUser = await api('/api/auth/login', { method: 'POST', body: { username: u, password: p } });
-      showApp();
-    } catch (e) {
-      document.getElementById('login-error').textContent = e.message;
+  // Login/Reg handlers helper
+  function attachAuthListeners() {
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+      loginBtn.onclick = async () => {
+        console.log('Login clicked');
+        const u = document.getElementById('login-username').value;
+        const p = document.getElementById('login-password').value;
+        try {
+          currentUser = await api('/api/auth/login', { method: 'POST', body: { username: u, password: p } });
+          showApp();
+        } catch (e) {
+          document.getElementById('login-error').textContent = e.message;
+        }
+      };
     }
-  };
 
-  // Register handlers...
-  document.getElementById('show-register').onclick = () => {
-    document.getElementById('login-form').style.display = 'none';
-    document.getElementById('register-form').style.display = 'block';
-  };
-
-  document.getElementById('show-login').onclick = () => {
-    document.getElementById('register-form').style.display = 'none';
-    document.getElementById('login-form').style.display = 'block';
-  };
-
-  document.getElementById('register-btn').onclick = async () => {
-    const u = document.getElementById('reg-username').value;
-    const e = document.getElementById('reg-email').value;
-    const p = document.getElementById('reg-password').value;
-    try {
-      currentUser = await api('/api/auth/register', { method: 'POST', body: { username: u, email: e, password: p } });
-      showApp();
-    } catch (err) {
-      document.getElementById('register-error').textContent = err.message;
+    const showRegBtn = document.getElementById('show-register');
+    if (showRegBtn) {
+      showRegBtn.onclick = () => {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'block';
+      };
     }
-  };
+
+    const showLoginBtn = document.getElementById('show-login');
+    if (showLoginBtn) {
+      showLoginBtn.onclick = () => {
+        document.getElementById('register-form').style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
+      };
+    }
+
+    const regBtn = document.getElementById('register-btn');
+    if (regBtn) {
+      regBtn.onclick = async () => {
+        console.log('Register clicked');
+        const u = document.getElementById('reg-username').value;
+        const e = document.getElementById('reg-email').value;
+        const p = document.getElementById('reg-password').value;
+        try {
+          currentUser = await api('/api/auth/register', { method: 'POST', body: { username: u, email: e, password: p } });
+          showApp();
+        } catch (err) {
+          document.getElementById('register-error').textContent = err.message;
+        }
+      };
+    }
+  }
 
   // Expose App Global
   window.app = window.app || {};
@@ -760,6 +775,10 @@
   });
 
   // Start
-  init();
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM Content Loaded - Initializing App');
+    attachAuthListeners();
+    init();
+  });
 
 })();
