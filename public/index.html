@@ -6,634 +6,375 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OwnDC</title>
   <link rel="stylesheet" href="/css/style.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/app.js" defer></script>
 </head>
 
 <body>
-  <div id="app">
-    <!-- Notification Bar -->
-    <div id="notification-container"
-      style="position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;width:auto;min-width:300px;pointer-events:none;">
-    </div>
+  <!-- Notification Container -->
+  <div id="notification-container" style="position:fixed;top:20px;right:20px;z-index:9999;pointer-events:none;"></div>
 
-    <!-- Auth Screen (Kept mostly same structure, styled via CSS) -->
-    <div id="auth-screen" class="screen active">
-      <div class="auth-container">
-        <div class="auth-logo">
-          <div style="display:flex;justify-content:center;margin-bottom:16px;">
-            <svg width="64" height="64" viewBox="0 0 48 48" fill="none">
-              <circle cx="24" cy="24" r="22" stroke="#5865F2" stroke-width="3" fill="none" />
-              <path d="M15 19c0-2.5 4-5 9-5s9 2.5 9 5c0 4-4 7-9 7s-9-3-9-7z" fill="#5865F2" opacity="0.4" />
-              <circle cx="20" cy="22" r="2.5" fill="#fff" />
-              <circle cx="28" cy="22" r="2.5" fill="#fff" />
-            </svg>
-          </div>
-          <h1>Welcome back!</h1>
-          <p class="tagline">We're so excited to see you again!</p>
-        </div>
-
-        <div id="login-form" class="auth-form">
-          <div class="form-group">
-            <label>Username</label>
-            <input type="text" id="login-username" autocomplete="username">
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="login-password" autocomplete="current-password">
-          </div>
-          <div id="login-error" class="error-msg"></div>
-          <button id="login-btn" class="btn-primary">Log In</button>
-          <p class="auth-switch">Need an account? <a href="#" id="show-register">Register</a></p>
-        </div>
-
-        <div id="register-form" class="auth-form" style="display:none">
-          <div class="form-group">
-            <label>Username</label>
-            <input type="text" id="reg-username" autocomplete="username">
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="reg-email" autocomplete="email">
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="reg-password" autocomplete="new-password">
-          </div>
-          <div id="register-error" class="error-msg"></div>
-          <button id="register-btn" class="btn-primary">Continue</button>
-          <p class="auth-switch">Already have an account? <a href="#" id="show-login">Log In</a></p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main App Grid -->
-    <div id="main-app" class="screen">
-
-      <!-- 1. Left Rail (Server List Style) -->
-      <!-- 2. Navigation Sidebar (Channels/DMs) -->
-      <div class="nav-sidebar">
-        <div class="nav-header">
-          <span id="nav-header-title">OwnDC</span>
-        </div>
-
-        <!-- Public Voice Widget -->
-        <div class="public-voice-widget" onclick="window.app.joinPublicVoice()">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div style="font-weight:700;display:flex;align-items:center;gap:6px;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                <line x1="12" y1="19" x2="12" y2="23"></line>
-                <line x1="8" y1="23" x2="16" y2="23"></line>
-              </svg>
-              Test-Talk
-            </div>
-            <div id="public-voice-count"
-              style="font-size:0.8rem;background:var(--success);color:white;padding:2px 6px;border-radius:12px;">0</div>
-          </div>
-          <div id="public-voice-users" style="display:flex;gap:4px;overflow:hidden;height:24px;">
-            <!-- Avatars go here -->
-          </div>
-        </div>
-
-        <!-- Quick Actions Panel (Simplified) -->
-        <div class="quick-actions-panel">
-          <button class="action-btn-pill" title="Add Friend" onclick="window.app.showAddFriendModal()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <line x1="19" x2="19" y1="8" y2="14" />
-              <line x1="22" x2="16" y1="11" y2="11" />
-            </svg>
-            Add Friend
-          </button>
-          <button class="action-btn-pill" title="Pending Requests" onclick="window.app.openFriendsView('pending')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 6v6l4 2" />
-            </svg>
-            Requests
-          </button>
-        </div>
-
-        <div class="nav-content" id="nav-content">
-          <!-- Home Sidebar Structure -->
-          <!-- Home Sidebar (DMs, Groups, Channels) - Friends removed -->
-          <div id="home-sidebar" style="display:block;">
-            <div class="sidebar-section">
-              <div class="sidebar-section-header"
-                style="display:flex;justify-content:space-between;align-items:center;">
-                CHANNELS
-                <div style="display:flex;gap:4px;">
-                  <button class="section-btn" onclick="window.app.showCreateHomeChannelModal()" title="New Channel (Shift+Y)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      stroke-width="2.5">
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div id="home-channels-list"></div>
-            </div>
-
-            <div class="sidebar-section">
-              <div class="sidebar-section-header"
-                style="display:flex;justify-content:space-between;align-items:center;">
-                DIRECT MESSAGES
-                <div style="display:flex;gap:4px;">
-                  <button class="section-btn" onclick="window.app.showCreateDmModal()" title="New DM">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      stroke-width="2.5">
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div id="dm-list-container"></div>
-            </div>
-
-            <div class="sidebar-section">
-              <div class="sidebar-section-header"
-                style="display:flex;justify-content:space-between;align-items:center;">
-                GROUPS
-                <button class="section-btn" onclick="window.app.showCreateGroupModal()" title="Create Group">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                </button>
-              </div>
-              <div id="groups-list-container"></div>
-            </div>
-          </div>
-
-          <!-- Dynamic content injected here (Channels, DMs, etc) -->
-          <div id="channels-list"></div>
-          <div id="friends-list" style="display:none"></div>
-          <div id="dm-list" style="display:none"></div>
-          <div id="groups-list" style="display:none"></div>
-        </div>
-
-        <!-- Voice Status Card -->
-        <div id="voice-card" class="voice-card" style="display:none;">
-          <div class="voice-info">
-            <div class="voice-connection-status">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--success)">
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
-              Voice Connected
-            </div>
-            <div id="voice-channel-name" class="voice-channel-name">Channel Name</div>
-          </div>
-          <div class="voice-actions">
-            <button class="btn-icon" onclick="window.app.leaveVoice()" title="Disconnect" style="color:var(--danger)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6zM10 10l10 10M20 10L10 20" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- User Panel (Bottom) -->
-        <div class="user-panel">
-          <div class="user-avatar-sm">
-            <span id="sidebar-avatar-text">U</span>
-            <div class="status-indicator"></div>
-          </div>
-          <div class="user-details">
-            <div class="user-name" id="sidebar-username">Username</div>
-            <div class="user-discriminator">#0000</div>
-          </div>
-          <div class="user-actions">
-            <button class="btn-icon" id="user-mute-btn" title="Mute">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
-                <line x1="12" x2="12" y1="19" y2="22" />
-              </svg>
-            </button>
-            <button class="btn-icon" id="user-deafen-btn" title="Deafen">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
-                <path
-                  d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
-              </svg>
-            </button>
-            <button class="btn-icon" id="sidebar-settings-btn" title="User Settings">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path
-                  d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </button>
-            <button id="logout-btn" class="btn-icon" title="Logout">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path
-                  d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. Chat Area -->
-      <div class="chat-main">
-        <!-- Chat Banner -->
-        <div class="chat-banner" id="chat-banner">
-          <button id="mobile-back-btn" onclick="window.app.showSidebarMobile()">←</button>
-          <div class="channel-title">
-            <span class="hashtag">#</span>
-            <span id="header-title">general</span>
-          </div>
-          <div style="display:flex;gap:12px;align-items:center;">
-            <button class="btn-icon" id="header-invite-btn" title="Invite Friends">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <line x1="19" x2="19" y1="8" y2="14" />
-                <line x1="16" x2="22" y1="11" y2="11" />
-              </svg>
-            </button>
-            <button class="btn-icon" id="call-normal-btn" title="Start Voice Call" style="display:none;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path
-                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-              </svg>
-            </button>
-            <button class="btn-icon" id="call-video-btn" title="Start Video Call" style="display:none;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="m22 8-6 4 6 4V8Z" />
-                <rect width="14" height="12" x="2" y="6" rx="2" ry="2" />
-              </svg>
-            </button>
-            <button class="btn-icon" id="join-voice-btn" style="display:none;">Join
-              Voice</button>
-            <button class="btn-icon" id="delete-group-btn" title="Delete Group"
-              style="display:none;color:var(--danger)">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Content Views -->
-
-        <!-- Welcome View (Home) -->
-        <div id="welcome-view"
-          style="display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;">
-          <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"
-            style="margin-bottom:32px;">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-          </svg>
-          <h1 style="font-size:2.5rem;margin:0 0 16px 0;color:var(--text-primary);font-weight:600;">Welcome to OwnDC
-          </h1>
-          <p style="color:var(--text-secondary);font-size:1.1rem;line-height:1.8;max-width:500px;margin:0;">
-            Your personal communication hub. Connect with friends, join servers, and start conversations.
-          </p>
-        </div>
-
-        <!-- Chat View -->
-        <div id="chat-view" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
-          <div class="messages-scroll" id="messages-container">
-            <!-- Messages go here -->
-          </div>
-
-          <div class="input-area">
-            <div class="input-wrapper">
-              <button class="btn-input-action" onclick="document.getElementById('image-upload-input').click()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                  <circle cx="9" cy="9" r="2" />
-                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                </svg>
-              </button>
-              <input type="file" id="image-upload-input" style="display:none;" accept="image/*">
-              <input type="text" class="chat-input" id="message-input" placeholder="Message #general"
-                autocomplete="off">
-              <div class="input-actions">
-                <!-- Send button, usually hidden and triggered by Enter, but we'll show an icon -->
-                <button id="send-btn" class="btn-input-action" style="color:var(--accent)">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Friends View -->
-        <div id="friends-view" class="content-view friends-view">
-          <div class="view-header">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-            </svg>
-            <h2>Friends</h2>
-            <button class="btn-icon" style="margin-left:auto;opacity:0.5" onclick="window.app.debugFriends()"
-              title="Debug Data">⚙️</button>
-          </div>
-
-          <div class="tab-bar">
-            <div class="tab-item active" data-tab="all">All</div>
-            <div class="tab-item" data-tab="pending">Pending</div>
-            <div class="tab-item" data-tab="blocked">Blocked</div>
-            <button id="add-friend-btn-main" onclick="window.app.showAddFriendModal()">Add Friend</button>
-          </div>
-          <div id="friends-list-main" class="friends-list">
-            <!-- Friend items go here -->
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Container -->
-    <div id="modal-container" class="modal-backdrop" style="display:none;">
-      <div class="modal-box">
-        <div class="modal-head">
-          <h3 id="modal-title">Create Channel</h3>
-        </div>
-        <div class="modal-body" id="modal-body">
-          <!-- Form content injected here -->
-        </div>
-        <div class="modal-foot">
-          <button class="btn-primary" style="background:transparent;color:var(--text-primary);width:auto;"
-            id="modal-cancel">Cancel</button>
-          <button class="btn-primary" style="width:auto;" id="modal-confirm">Create</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Add Friend Modal -->
-    <div id="add-friend-modal" class="modal-backdrop" style="display:none;">
-      <div class="modal-box" style="max-width:440px;">
-        <h2 style="margin-top:0;">Add Friend</h2>
-        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:20px;">You can add a friend with their
-          username.</p>
-        <div class="form-group">
-          <label>Username</label>
-          <input id="add-friend-username" placeholder="Wumpus#0000" style="width:100%;">
-        </div>
-        <div id="add-friend-error" class="error-msg" style="margin-bottom:16px;"></div>
-        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-          <button class="btn-secondary"
-            onclick="document.getElementById('add-friend-modal').style.display='none'">Cancel</button>
-          <button class="btn-primary" style="width:auto;padding:0 24px;" onclick="window.app.sendFriendRequest()">Send
-            Friend Request</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Create Group Modal -->
-    <div id="create-group-modal" class="modal-backdrop" style="display:none;">
-      <div class="modal-box" style="max-width:440px;">
-        <h2 style="margin-top:0;">Create Group</h2>
-        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:20px;">Groups are perfect for chatting with
-          multiple friends.</p>
-        <div class="form-group">
-          <label>Group Name</label>
-          <input id="create-group-name" placeholder="My Awesome Group" style="width:100%;">
-        </div>
-        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-          <button class="btn-secondary"
-            onclick="document.getElementById('create-group-modal').style.display='none'">Cancel</button>
-          <button class="btn-primary" style="width:auto;padding:0 24px;" onclick="window.app.createGroup()">Create
-            Group</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Invite to Group Modal -->
-    <div id="group-invite-modal" class="modal-backdrop" style="display:none;">
-      <div class="modal-box" style="max-width:440px;">
-        <h2 style="margin-top:0;">Invite to Group</h2>
-        <div id="group-invite-friend-list" style="margin:20px 0;max-height:300px;overflow-y:auto;">
-          <!-- Friends will be loaded here -->
-        </div>
-        <div style="display:flex;justify-content:flex-end;">
-          <button class="btn-secondary"
-            onclick="document.getElementById('group-invite-modal').style.display='none'">Close</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Server Invite Modal -->
-    <div id="server-invite-modal" class="modal-backdrop" style="display:none;">
-      <div class="modal-box" style="max-width:500px;">
-        <h2 style="margin-top:0;">Invite Friends to Server</h2>
-        <div id="server-invite-body" style="margin:20px 0;">
-          <div class="form-group">
-            <label>Invite Code</label>
-            <div style="display:flex;gap:8px;">
-              <input id="server-invite-code" readonly style="flex:1;background:var(--bg-active);cursor:pointer;"
-                onclick="this.select()">
-              <button class="btn-primary" style="width:auto;padding:0 16px;"
-                onclick="window.app.copyInviteCode()">Copy</button>
-            </div>
-            <p style="font-size:0.85rem;color:var(--text-muted);margin-top:8px;">Share this code with friends to let
-              them join your server.</p>
-          </div>
-          <div class="form-group">
-            <label>Or Invite Friends Directly</label>
-            <div id="friend-invite-list" style="max-height:200px;overflow-y:auto;"></div>
-          </div>
-        </div>
-        <div style="display:flex;gap:12px;justify-content:flex-end;">
-          <button class="btn-secondary"
-            onclick="document.getElementById('server-invite-modal').style.display='none'">Close</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal-backdrop" style="display:none;">
-      <div class="modal-box" style="max-width:600px;height:80vh;display:flex;flex-direction:column;">
-        <div class="modal-head" style="border-bottom:1px solid var(--border)">
-          <h3>User Settings</h3>
-        </div>
-        <div class="modal-body" style="flex:1;overflow-y:auto;">
-          <!-- Profile Section -->
-          <div class="settings-section">
-            <h4 style="margin-bottom:16px;text-transform:uppercase;font-size:0.75rem;color:var(--text-muted);">My
-              Account</h4>
-            <div id="settings-username" style="font-size:1.2rem;font-weight:700;margin-bottom:8px;"></div>
-            <div id="settings-avatar-preview" class="user-avatar-sm"
-              style="width:100px;height:100px;font-size:2rem;margin-bottom:16px;"></div>
-            <button class="btn-primary" style="width:auto;" id="edit-profile-btn">Edit Profile</button>
-
-            <div id="edit-profile-form" style="display:none;margin-top:16px;">
-              <div class="form-group">
-                <label>Avatar URL</label>
-                <input id="settings-avatar-input" placeholder="https://...">
-              </div>
-              <div class="form-group">
-                <label>Bio</label>
-                <textarea id="settings-bio-input"
-                  style="width:100%;background:var(--bg-input);color:white;border:none;border-radius:var(--radius);padding:10px;"></textarea>
-              </div>
-              <div style="display:flex;gap:8px;">
-                <button class="btn-primary" style="width:auto;" id="save-profile-btn">Save</button>
-                <button class="btn-primary" style="width:auto;background:transparent;"
-                  id="cancel-profile-edit">Cancel</button>
-              </div>
-            </div>
-
-            <h4
-              style="margin-top:32px;margin-bottom:16px;text-transform:uppercase;font-size:0.75rem;color:var(--text-muted);">
-              Appearance</h4>
-            <div style="display:flex;gap:16px;">
-              <div id="theme-dark" class="theme-preview active"
-                style="padding:16px;background:#18181b;border:2px solid var(--accent);border-radius:8px;cursor:pointer;">
-                Dark Theme</div>
-              <div id="theme-light" class="theme-preview"
-                style="padding:16px;background:#fff;color:#000;border:2px solid transparent;border-radius:8px;cursor:pointer;">
-                Light Theme</div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-foot">
-          <button class="btn-primary" style="width:auto;" id="settings-close">Done</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Server Settings Modal -->
-    <div id="server-settings-modal" class="modal-backdrop" style="display:none;">
-      <div class="modal-box" style="max-width:700px;height:80vh;display:flex;flex-direction:column;">
-        <div class="modal-head" style="justify-content:space-between;">
-          <h3>Server Settings</h3>
-          <button class="btn-icon" id="close-server-settings">✕</button>
-        </div>
-        <div class="modal-body" style="flex:1;display:flex;padding:0;">
-          <div
-            style="width:200px;background:var(--bg-sidebar);padding:16px;display:flex;flex-direction:column;gap:8px;">
-            <div class="tab-item active" id="st-overview" onclick="window.app.switchServerTab('overview')">Overview
-            </div>
-            <div class="tab-item" id="st-roles" onclick="window.app.switchServerTab('roles')">Roles</div>
-            <div class="tab-item" id="st-members" onclick="window.app.switchServerTab('members')">Members</div>
-            <div class="tab-item" style="color:var(--danger)" onclick="window.app.leaveServer()">Leave Server</div>
-          </div>
-          <div id="server-settings-content" style="flex:1;padding:24px;overflow-y:auto;">
-            <!-- Dynamic Content -->
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Incoming Call Modal -->
-    <div id="incoming-call-modal" class="modal-backdrop" style="display:none;background:rgba(0,0,0,0.8);">
-      <div class="modal-box" style="text-align:center;width:300px;">
-        <div id="caller-avatar"
-          style="width:80px;height:80px;border-radius:50%;background:var(--accent);margin:0 auto 16px;background-size:cover;">
-        </div>
-        <h3 id="caller-name">Unknown</h3>
-        <p>is calling you...</p>
-        <div style="display:flex;gap:16px;justify-content:center;margin-top:24px;">
-          <button class="btn-icon active" style="background:var(--danger);width:48px;height:48px;" id="reject-call-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-              <path
-                d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.7-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z" />
-            </svg>
-          </button>
-          <button class="btn-icon active" style="background:var(--success);width:48px;height:48px;"
-            id="accept-call-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-              <path
-                d="M20.01 15.38c-1.23-.37-2.64-.19-3.7.53-1 .68-1.57 1.83-1.57 3.03v2.09c0 .54.43.99.97 1.05 4.31.42 8-3.23 8-8 0-.54-.45-.97-1.05-.97h-2.1c-1.2 0-2.35.58-3.03 1.57-.72 1.05-.9 2.47-.53 3.7.35 1.17 1.41 1.99 2.63 1.99h1.77c.45 0 .82-.3.94-.74.12-.46-.07-.94-.47-1.18-.73-.44-1.58-.69-2.48-.69-2.62 0-4.75 2.13-4.75 4.75 0 2.62 2.13 4.75 4.75 4.75s4.75-2.13 4.75-4.75c0-.9-.25-1.75-.69-2.48-.24-.4-.72-.59-1.18-.47-.44.12-.74.49-.74.94v1.77c0 1.22.82 2.28 1.99 2.63z"
-                opacity="0" />
-              <path
-                d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Active Call Overlay (Corner Window) -->
-    <div id="active-call-overlay">
-      <div style="width:400px;background:#000;border:1px solid #333;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.8);">
-        <div style="padding:16px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.05);">
-          <div style="color:white;font-weight:700;display:flex;align-items:center;gap:8px;">
-            <span class="status-dot pulse" style="background:var(--danger);"></span>
-            <span id="call-status">Calling...</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div style="color:white;font-size:0.9rem;" id="call-duration">00:00</div>
-            <button id="fullscreen-call-btn" class="btn-icon" title="Fullscreen"
-              style="width:32px;height:32px;padding:4px;color:white;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path
-                  d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div id="call-video-container" style="height:250px;position:relative;background:#111;cursor:pointer;"
-          onclick="window.toggleCallFullscreen()">
-          <video id="remote-video" autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:none;"></video>
-          <video id="local-video" autoplay playsinline muted
-            style="position:absolute;bottom:16px;right:16px;width:120px;height:90px;border-radius:8px;border:2px solid #333;box-shadow:var(--shadow-lg);display:none;z-index:10;"></video>
-          <div id="call-calling-placeholder"
-            style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;gap:16px;">
-            <div id="call-target-avatar"
-              style="width:100px;height:100px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:2.5rem;font-weight:700;">
-              ?</div>
-            <h2 id="call-target-name" style="margin:0;">User</h2>
-            <p style="margin:0;opacity:0.6;">Ringing...</p>
-          </div>
-        </div>
-        <div class="call-controls">
-          <button class="call-btn active" id="toggle-mic" title="Mute/Unmute">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-              <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
-              <line x1="12" x2="12" y1="19" y2="22" />
-            </svg>
-          </button>
-          <button class="call-btn" id="toggle-video" title="Camera On/Off">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="m22 8-6 4 6 4V8Z" />
-              <rect width="14" height="12" x="2" y="6" rx="2" ry="2" />
-            </svg>
-          </button>
-          <button class="call-btn" id="share-screen" title="Share Screen">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <rect width="18" height="14" x="3" y="3" rx="2" />
-              <path d="M7 21h10" />
-              <path d="M12 17v4" />
-            </svg>
-          </button>
-          <button class="call-btn danger" id="end-call-btn" title="End Call">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path
-                d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Ringtone for incoming calls -->
-  <audio id="ringtone" preload="auto">
+  <!-- Audio Elements -->
+  <audio id="ringtone" preload="auto" loop>
+    <!-- Use a simple reliable sound or placeholder data URI -->
     <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=" type="audio/wav">
   </audio>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/app.js"></script>
+  <!-- Auth Screen -->
+  <div id="auth-screen" class="auth-container">
+    <div class="auth-box">
+      <div style="text-align:center;margin-bottom:24px;">
+        <h2 style="color:var(--header-primary);margin-bottom:8px;">Welcome Back!</h2>
+        <p style="color:var(--text-secondary);">We're so excited to see you again!</p>
+      </div>
+
+      <!-- Login Form -->
+      <div id="login-form">
+        <div style="margin-bottom:16px;">
+          <label
+            style="display:block;color:var(--header-secondary);font-size:12px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Username</label>
+          <input id="login-username"
+            style="width:100%;padding:10px;background:var(--input-bg);border:none;border-radius:3px;color:var(--text-normal);outline:none;">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label
+            style="display:block;color:var(--header-secondary);font-size:12px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Password</label>
+          <input id="login-password" type="password"
+            style="width:100%;padding:10px;background:var(--input-bg);border:none;border-radius:3px;color:var(--text-normal);outline:none;">
+        </div>
+        <div id="login-error" style="color:var(--red);font-size:12px;margin-bottom:16px;"></div>
+        <button id="login-btn" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Log In</button>
+        <div style="font-size:14px;color:var(--text-secondary);">Need an account? <span id="show-register"
+            style="color:var(--text-link);cursor:pointer;">Register</span></div>
+      </div>
+
+      <!-- Register Form -->
+      <div id="register-form" style="display:none;">
+        <div style="margin-bottom:16px;">
+          <label
+            style="display:block;color:var(--header-secondary);font-size:12px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Email</label>
+          <input id="reg-email" type="email"
+            style="width:100%;padding:10px;background:var(--input-bg);border:none;border-radius:3px;color:var(--text-normal);outline:none;">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label
+            style="display:block;color:var(--header-secondary);font-size:12px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Username</label>
+          <input id="reg-username"
+            style="width:100%;padding:10px;background:var(--input-bg);border:none;border-radius:3px;color:var(--text-normal);outline:none;">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label
+            style="display:block;color:var(--header-secondary);font-size:12px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Password</label>
+          <input id="reg-password" type="password"
+            style="width:100%;padding:10px;background:var(--input-bg);border:none;border-radius:3px;color:var(--text-normal);outline:none;">
+        </div>
+        <div id="register-error" style="color:var(--red);font-size:12px;margin-bottom:16px;"></div>
+        <button id="register-btn" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
+        <div style="font-size:14px;color:var(--text-secondary);">Already have an account? <span id="show-login"
+            style="color:var(--text-link);cursor:pointer;">Log In</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="main-app" class="app-mount hidden">
+    <!-- 1. Sidebar Servers -->
+    <nav class="sidebar-servers">
+      <!-- Home Button -->
+      <div class="server-icon-wrapper active" id="server-home">
+        <div class="server-pill"></div>
+        <div class="server-icon" style="background-color:var(--brand);">
+          <svg width="28" height="20" viewBox="0 0 28 20" fill="white">
+            <path
+              d="M23.0212 1.67671C21.3107 0.879656 19.5079 0.318797 17.6584 0C17.4062 0.461742 17.1749 0.934541 16.9708 1.4184C15.0172 1.11817 13.0924 1.11817 11.1284 1.4184C10.9192 0.934541 10.6879 0.461742 10.4357 0C8.58618 0.318797 6.78841 0.879656 5.07791 1.67671C1.61498 6.94272 0.697412 12.0494 1.16616 17.156C3.41738 18.817 5.56828 19.8252 7.64379 20C8.16912 19.2905 8.6322 18.5367 9.02705 17.7471C8.25265 17.4495 7.50973 17.086 6.80419 16.6667C6.9944 16.5273 7.17482 16.3814 7.34586 16.2235C11.647 18.1969 16.4429 18.1969 20.7139 16.2235C20.8849 16.3814 21.0704 16.5273 21.2606 16.6667C20.5551 17.086 19.8122 17.4495 19.0378 17.7471C19.4326 18.5367 19.9008 19.2905 20.4261 20C22.5016 19.8252 24.6525 18.817 26.9038 17.156C27.4939 11.751 26.2736 6.64966 23.0212 1.67671ZM9.68041 13.6383C8.39754 13.6383 7.34085 12.4456 7.34085 11.0069C7.34085 9.56816 8.35418 8.37549 9.68041 8.37549C11.0218 8.37549 12.0656 9.56816 12.0223 11.0069C12.0223 12.4456 11.0069 13.6383 9.68041 13.6383ZM18.3795 13.6383C17.0966 13.6383 16.0399 12.4456 16.0399 11.0069C16.0399 9.56816 17.0533 8.37549 18.3795 8.37549C19.7209 8.37549 20.7647 9.56816 20.7214 11.0069C20.7214 12.4456 19.7209 13.6383 18.3795 13.6383Z" />
+          </svg>
+        </div>
+      </div>
+      <div class="server-separator"></div>
+
+      <!-- Server List Container -->
+      <div id="server-list"></div>
+
+      <!-- Add Server Button -->
+      <!-- <div class="server-icon-wrapper" onclick="window.app.showAddServerModal()">
+        <div class="server-pill"></div>
+        <div class="server-icon" style="background-color:var(--bg-primary);color:var(--green);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M13 11H20V13H13V20H11V13H4V11H11V4H13V11Z"/></svg>
+        </div>
+      </div> -->
+      <!-- Public Voice Test placeholder icon -->
+      <div class="server-icon-wrapper" onclick="window.app.joinPublicVoice()" title="Join Public Voice Test">
+        <div class="server-pill"></div>
+        <div class="server-icon" style="background-color:var(--bg-primary);color:var(--text-normal);">
+          🎤
+        </div>
+      </div>
+    </nav>
+
+    <!-- 2. Sidebar Channels -->
+    <div class="sidebar-channels">
+      <!-- Server/Context Header -->
+      <div class="channel-header" id="sidebar-header" onclick="window.app.handleHeaderClick()">
+        <span class="channel-header-text" id="sidebar-header-text">Home</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" clip-rule="evenodd"
+            d="M16.59 8.59004L12 13.17L7.41 8.59004L6 10L12 16L18 10L16.59 8.59004Z" />
+        </svg>
+      </div>
+
+      <!-- Channel List -->
+      <div class="channel-list" id="channel-list">
+        <!-- Dynamic Content: DMs/Channels -->
+      </div>
+
+      <!-- User Area -->
+      <div class="user-area">
+        <div class="user-area-info" onclick="window.app.openSettings()">
+          <div class="user-avatar" id="current-user-avatar">
+            <div class="user-status-dot"></div>
+          </div>
+          <div class="user-text">
+            <div class="user-username" id="current-user-name">Username</div>
+            <div class="user-subtext" id="current-user-discriminator">#0000</div>
+          </div>
+        </div>
+        <div class="user-controls">
+          <button class="control-btn" id="btn-mute" onclick="window.app.toggleMute()">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C8.7 2 6 4.7 6 8v7H4v2h16v-2h-2V8c0-3.3-2.7-6-6-6zm-3 18c0 1.7 1.3 3 3 3s3-1.3 3-3H9z" />
+            </svg> <!-- Placeholder icon -->
+          </button>
+          <button class="control-btn" id="btn-deafen" onclick="window.app.toggleDeafen()">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 3a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1H5v-.5a7 7 0 1 1 14 0v.5h-4a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z" />
+            </svg>
+          </button>
+          <button class="control-btn" onclick="window.app.openSettings()">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.04.17 0 .36.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.04-.22 0-.45-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Main Content -->
+    <div class="main-content">
+      <!-- Chat Header -->
+      <div class="chat-header">
+        <div class="header-left">
+          <div class="header-icon" id="header-icon">#</div>
+          <div class="header-title" id="header-title">general</div>
+          <div class="header-description" id="header-description"></div>
+        </div>
+        <div class="header-toolbar">
+          <!-- Call Buttons for DM -->
+          <div class="toolbar-icon hidden" id="btn-start-call" title="Start Voice Call"
+            onclick="window.app.startCall(null, false)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M20.01 15.38C18.78 15.01 17.37 15.19 16.31 15.91L15.48 16.74C12.38 15.22 10.39 12.87 9.17 10.22L10.02 9.38C10.75 8.32 10.92 6.91 10.55 5.68L9.77 3.03C9.52 2.18 8.64 1.69 7.76 1.88L4.31 2.65C3.32 2.87 2.5 3.96 2.83 5.09C4.33 10.23 8.35 15.79 14.18 19.16C15.6 19.97 17.3 19.79 18.52 18.99L21.36 17.25C22.13 16.78 22.39 15.82 21.6 15.24L20.01 15.38Z" />
+            </svg>
+          </div>
+          <div class="toolbar-icon hidden" id="btn-start-video" title="Start Video Call"
+            onclick="window.app.startCall(null, true)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M17 10.5V7C17 6.45 16.55 6 16 6H4C3.45 6 3 6.45 3 7V17C3 17.55 3.45 18 4 18H16C16.55 18 17 17.55 17 17V13.5L21 17.5V6.5L17 10.5Z" />
+            </svg>
+          </div>
+
+          <div class="toolbar-icon" onclick="window.app.toggleMemberList()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M16 11C17.66 11 19 9.66 19 8C19 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11ZM8 11C9.66 11 11 9.66 11 8C11 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11ZM8 13C5.33 13 0 14.34 0 17V20H16V17C16 14.34 10.67 13 8 13ZM16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H21V17C21 14.33 17.67 13 16 13Z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="chat-area">
+        <!-- Message List -->
+        <div class="messages-wrapper" id="messages-container">
+          <!-- Dynamic Messages -->
+          <!-- <div class="message-group">
+              <div class="message-avatar" style="background-image:url(...)"></div>
+              <div class="message-content">
+                 <div class="message-header">
+                    <span class="message-username">Username</span>
+                    <span class="message-timestamp">Today at 4:20 PM</span>
+                 </div>
+                 <div class="message-text">Hello world!</div>
+              </div>
+           </div> -->
+        </div>
+
+        <!-- Friends List View (Initially Hidden) -->
+        <div class="friends-wrapper" id="friends-view">
+          <div class="friends-header">
+            <h3 style="color:var(--header-primary);">Friends</h3>
+          </div>
+          <div id="friends-list-container" style="flex:1;overflow-y:auto;">
+            <!-- Dynamic content -->
+          </div>
+          <div style="padding-top:16px;">
+            <button class="btn btn-primary" onclick="window.app.showAddFriendModal()">Add Friend</button>
+          </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area" id="input-area">
+          <div class="input-wrapper">
+            <div class="input-upload-btn" onclick="document.getElementById('file-input').click()">+</div>
+            <input id="file-input" type="file" style="display:none">
+            <input class="input-field" id="message-input" placeholder="Message #general" autocomplete="off">
+            <div class="input-icons">
+              <!-- GIF, Sticker, Emoji placeholders -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call Overlay -->
+  <div class="call-overlay" id="call-overlay">
+    <div class="video-grid" id="video-grid">
+      <div class="video-container">
+        <video id="remote-video" class="video-element" autoplay playsinline></video>
+        <div class="call-placeholder" id="call-placeholder">
+          <div class="user-avatar" style="width:80px;height:80px;font-size:32px;margin:auto;">U</div>
+          <h2 style="margin-top:16px;">User</h2>
+          <div style="color:var(--text-muted);">Calling...</div>
+        </div>
+      </div>
+      <div class="video-container"
+        style="position:absolute;bottom:100px;right:32px;width:240px;height:135px;z-index:10;box-shadow:0 0 10px rgba(0,0,0,0.5);">
+        <video id="local-video" class="video-element" autoplay playsinline muted></video>
+      </div>
+    </div>
+    <div class="call-controls">
+      <button class="call-btn" id="btn-toggle-video" onclick="window.app.toggleVideo()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M17 10.5V7C17 6.45 16.55 6 16 6H4C3.45 6 3 6.45 3 7V17C3 17.55 3.45 18 4 18H16C16.55 18 17 17.55 17 17V13.5L21 17.5V6.5L17 10.5Z" />
+        </svg>
+      </button>
+      <button class="call-btn" id="btn-toggle-mic" onclick="window.app.toggleMic()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+          <path
+            d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+        </svg>
+      </button>
+      <button class="call-btn danger" onclick="window.app.endCall()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.7-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Incoming Call Modal -->
+  <div class="modal-overlay" id="incoming-call-modal">
+    <div class="modal-content" style="width:300px;text-align:center;padding:24px;">
+      <div class="user-avatar" style="width:80px;height:80px;margin:0 auto 16px;font-size:32px;"
+        id="incoming-call-avatar">U</div>
+      <h3 id="incoming-call-name">Username</h3>
+      <p style="color:var(--text-muted);margin-bottom:24px;">Incoming Call...</p>
+      <div style="display:flex;justify-content:center;gap:32px;">
+        <button class="call-btn danger" onclick="window.app.rejectCall()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.7-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z" />
+          </svg>
+        </button>
+        <button class="call-btn" style="background-color:var(--green);" onclick="window.app.acceptCall()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M20.01 15.38C18.78 15.01 17.37 15.19 16.31 15.91L15.48 16.74C12.38 15.22 10.39 12.87 9.17 10.22L10.02 9.38C10.75 8.32 10.92 6.91 10.55 5.68L9.77 3.03C9.52 2.18 8.64 1.69 7.76 1.88L4.31 2.65C3.32 2.87 2.5 3.96 2.83 5.09C4.33 10.23 8.35 15.79 14.18 19.16C15.6 19.97 17.3 19.79 18.52 18.99L21.36 17.25C22.13 16.78 22.39 15.82 21.6 15.24L20.01 15.38Z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal (Reuse structure) -->
+  <div class="modal-overlay" id="settings-modal" style="display:none;">
+    <div class="modal-content" style="width:700px;height:80vh;flex-direction:row;">
+      <div style="width:200px;background:var(--bg-secondary);padding:16px;">
+        <div style="font-weight:700;color:var(--text-muted);font-size:12px;margin-bottom:8px;padding:0 10px;">USER
+          SETTINGS</div>
+        <div class="channel-item active" style="padding:6px 10px;">My Account</div>
+        <div style="height:1px;background:var(--bg-modifier-active);margin:8px 0;"></div>
+        <div class="channel-item" style="padding:6px 10px;color:var(--red);"
+          onclick="document.getElementById('logout-btn').click()">Log Out</div>
+      </div>
+      <div style="flex:1;padding:40px;overflow-y:auto;">
+        <h2 style="margin-bottom:24px;">My Account</h2>
+        <div
+          style="background:var(--bg-tertiary);border-radius:8px;padding:16px;display:flex;align-items:center;margin-bottom:24px;">
+          <div class="user-avatar" id="settings-avatar-preview"
+            style="width:80px;height:80px;font-size:32px;margin-right:24px;">U</div>
+          <div style="flex:1;">
+            <div id="settings-username" style="font-weight:700;font-size:20px;margin-bottom:4px;">Username</div>
+            <div id="settings-email" style="color:var(--text-muted);">email@example.com</div>
+          </div>
+          <button class="btn btn-primary" onclick="window.app.editProfile()">Edit User Profile</button>
+        </div>
+
+        <div id="edit-profile-section" style="display:none;">
+          <div style="margin-bottom:16px;">
+            <label
+              style="display:block;color:var(--text-muted);font-size:12px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Avatar
+              URL</label>
+            <input id="settings-avatar-input"
+              style="width:100%;padding:10px;background:var(--input-bg);border:none;border-radius:3px;color:var(--text-normal);outline:none;">
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;">
+            <button class="btn btn-secondary" onclick="window.app.cancelEditProfile()">Cancel</button>
+            <button class="btn btn-primary" onclick="window.app.saveProfile()">Save Changes</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary"
+          style="position:absolute;top:32px;right:32px;width:32px;height:32px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;"
+          onclick="document.getElementById('settings-modal').style.display='none'">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Other Modals (Add Friend, Create Group, etc) would go here following similar structure -->
+  <div class="modal-overlay" id="add-friend-modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="text-transform:uppercase;font-weight:700;">Add Friend</h3>
+        <div style="color:var(--text-muted);">You can add a friend with their username.</div>
+      </div>
+      <div style="padding:0 24px;">
+        <input id="add-friend-username" placeholder="Wumpus#0000"
+          style="width:100%;padding:10px;background:var(--input-bg);border:none;border-radius:3px;color:var(--text-normal);outline:none;">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary"
+          onclick="document.getElementById('add-friend-modal').style.display='none'">Cancel</button>
+        <button class="btn btn-primary" onclick="window.app.sendFriendRequest()">Send Friend Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden inputs -->
+  <input type="file" id="image-upload-input" style="display:none;" accept="image/*">
+
 </body>
 
 </html>
