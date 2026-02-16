@@ -708,97 +708,184 @@ body {
   text-decoration: underline;
 }
 
-/* Auth Pages */
+/* Auth Pages - Modern Glassmorphism Design */
 .auth-container {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100vh;
   width: 100vw;
-  background-image:
-    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-    url('https://cdn.discordapp.com/attachments/889947936665780254/1141065183864504380/wallpaper.png');
-  background-size: cover;
-  background-position: center;
-  position: absolute;
-  /* Ensure it covers everything */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: fixed;
   top: 0;
   left: 0;
   z-index: 10000;
-  /* Ensure on top */
+  overflow: auto;
 }
 
 .auth-box {
-  background-color: #313338;
-  padding: 32px;
-  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 48px 40px;
+  border-radius: 20px;
   width: 100%;
   max-width: 480px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-  animation: slideIn 0.3s ease-out;
-  pointer-events: auto;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  animation: slideInAuth 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  margin: 20px;
 }
 
-.auth-box * {
-  pointer-events: auto;
-  user-select: auto;
-}
-
-@keyframes slideIn {
+@keyframes slideInAuth {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-30px) scale(0.95);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-.auth-form input {
-  transition: border-color 0.2s;
+.auth-logo {
+  text-align: center;
+  margin-bottom: 32px;
 }
 
-.auth-form input:focus {
-  border-color: var(--brand);
+.auth-logo-circle {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.btn-primary {
-  background-color: #5865F2;
+.auth-title {
+  font-size: 32px;
+  font-weight: 700;
   color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 3px;
-  font-weight: 500;
-  cursor: pointer;
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.auth-form {
   width: 100%;
-  transition: background-color 0.2s;
 }
 
-.btn-primary:hover {
-  background-color: #4752C4;
+.form-heading {
+  font-size: 24px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 8px 0;
+  text-align: center;
 }
 
-.auth-switch {
-  margin-top: 10px;
+.form-subheading {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  color: #2d3748;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  background: white;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-input::placeholder {
+  color: #a0aec0;
+}
+
+.form-error {
+  color: #fc8181;
   font-size: 14px;
-  color: #949BA4;
+  margin-bottom: 16px;
+  min-height: 20px;
+  font-weight: 500;
 }
 
-.auth-switch span {
-  color: #00A8FC;
+.form-button {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  margin-bottom: 16px;
 }
 
-.auth-switch span:hover {
+.form-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.form-button:active {
+  transform: translateY(0);
+}
+
+.form-footer {
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.form-link {
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-link:hover {
   text-decoration: underline;
+  color: #ffd700;
 }
 
 /* Utilities */
 .hidden {
   display: none !important;
 }
+
 
 @keyframes scaleIn {
   from {

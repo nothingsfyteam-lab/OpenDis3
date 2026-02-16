@@ -23,56 +23,70 @@
   <!-- Auth Screen -->
   <div id="auth-screen" class="auth-container">
     <div class="auth-box">
-      <div style="text-align:center;margin-bottom:24px;">
-        <h2 style="color:var(--header-primary);margin-bottom:8px;">Welcome Back!</h2>
-        <p style="color:var(--text-secondary);">We're so excited to see you again!</p>
+      <!-- Logo/Branding -->
+      <div class="auth-logo">
+        <div class="auth-logo-circle">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
+            <path
+              d="M20 0C8.954 0 0 8.954 0 20s8.954 20 20 20 20-8.954 20-20S31.046 0 20 0zm0 36c-8.822 0-16-7.178-16-16S11.178 4 20 4s16 7.178 16 16-7.178 16-16 16z" />
+            <circle cx="20" cy="20" r="8" />
+          </svg>
+        </div>
+        <h1 class="auth-title">OwnDC</h1>
       </div>
 
       <!-- Login Form -->
-      <div id="login-form">
-        <div style="margin-bottom:16px;">
-          <label
-            style="display:block;color:var(--header-secondary);font-size:12px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Username</label>
-          <input id="login-username"
-            style="width:100%;padding:10px;background:var(--input-bg);border:none;border-radius:3px;color:var(--text-normal);outline:none;">
+      <form id="login-form" class="auth-form">
+        <h2 class="form-heading">Welcome back!</h2>
+        <p class="form-subheading">We're so excited to see you again!</p>
+
+        <div class="form-group">
+          <label class="form-label">USERNAME</label>
+          <input type="text" id="login-username" class="form-input" required autocomplete="username">
         </div>
-        <div style="margin-bottom:16px;">
-          <label
-            style="display:block;color:var(--header-secondary);font-size:12px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Password</label>
-          <input id="login-password" type="password"
-            style="width:100%;padding:10px;background:var(--input-bg);border:none;border-radius:3px;color:var(--text-normal);outline:none;">
+
+        <div class="form-group">
+          <label class="form-label">PASSWORD</label>
+          <input type="password" id="login-password" class="form-input" required autocomplete="current-password">
         </div>
-        <div id="login-error" style="color:var(--red);font-size:12px;margin-bottom:16px;"></div>
-        <button id="login-btn" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Log In</button>
-        <div style="font-size:14px;color:var(--text-secondary);">Need an account? <span id="show-register"
-            style="color:var(--text-link);cursor:pointer;">Register</span></div>
-      </div>
+
+        <div id="login-error" class="form-error"></div>
+
+        <button type="submit" class="form-button">Log In</button>
+
+        <div class="form-footer">
+          Need an account? <a href="#" id="show-register" class="form-link">Register</a>
+        </div>
+      </form>
 
       <!-- Register Form -->
-      <div id="register-form" style="display:none;">
-        <div style="margin-bottom:16px;">
-          <label
-            style="display:block;color:var(--header-secondary);font-size:12px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Email</label>
-          <input id="reg-email" type="email"
-            style="width:100%;padding:10px;background:var(--input-bg);border:none;border-radius:3px;color:var(--text-normal);outline:none;">
+      <form id="register-form" class="auth-form" style="display:none;">
+        <h2 class="form-heading">Create an account</h2>
+        <p class="form-subheading">Join the community today!</p>
+
+        <div class="form-group">
+          <label class="form-label">EMAIL</label>
+          <input type="email" id="reg-email" class="form-input" required autocomplete="email">
         </div>
-        <div style="margin-bottom:16px;">
-          <label
-            style="display:block;color:var(--header-secondary);font-size:12px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Username</label>
-          <input id="reg-username"
-            style="width:100%;padding:10px;background:var(--input-bg);border:none;border-radius:3px;color:var(--text-normal);outline:none;">
+
+        <div class="form-group">
+          <label class="form-label">USERNAME</label>
+          <input type="text" id="reg-username" class="form-input" required autocomplete="username">
         </div>
-        <div style="margin-bottom:16px;">
-          <label
-            style="display:block;color:var(--header-secondary);font-size:12px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Password</label>
-          <input id="reg-password" type="password"
-            style="width:100%;padding:10px;background:var(--input-bg);border:none;border-radius:3px;color:var(--text-normal);outline:none;">
+
+        <div class="form-group">
+          <label class="form-label">PASSWORD</label>
+          <input type="password" id="reg-password" class="form-input" required autocomplete="new-password">
         </div>
-        <div id="register-error" style="color:var(--red);font-size:12px;margin-bottom:16px;"></div>
-        <button id="register-btn" class="btn btn-primary" style="width:100%;margin-bottom:8px;">Continue</button>
-        <div style="font-size:14px;color:var(--text-secondary);">Already have an account? <span id="show-login"
-            style="color:var(--text-link);cursor:pointer;">Log In</span></div>
-      </div>
+
+        <div id="register-error" class="form-error"></div>
+
+        <button type="submit" class="form-button">Continue</button>
+
+        <div class="form-footer">
+          Already have an account? <a href="#" id="show-login" class="form-link">Log In</a>
+        </div>
+      </form>
     </div>
   </div>
 

@@ -718,15 +718,17 @@
   };
 
   // --- Auth & Modals ---
-  // Login/Reg handlers helper
+  // Login/Reg handlers using FORM SUBMIT (more reliable than button click)
   function attachAuthListeners() {
     console.log('[AUTH] Attaching auth listeners...');
 
-    const loginBtn = document.getElementById('login-btn');
-    console.log('[AUTH] Login button found:', !!loginBtn);
-    if (loginBtn) {
-      loginBtn.onclick = async (event) => {
-        console.log('[AUTH] Login button clicked!', event);
+    // Login Form Submit
+    const loginForm = document.getElementById('login-form');
+    console.log('[AUTH] Login form found:', !!loginForm);
+    if (loginForm) {
+      loginForm.onsubmit = async (e) => {
+        e.preventDefault();
+        console.log('[AUTH] Login form submitted!');
         const u = document.getElementById('login-username').value;
         const p = document.getElementById('login-password').value;
         console.log('[AUTH] Attempting login for user:', u);
@@ -739,49 +741,51 @@
           document.getElementById('login-error').textContent = e.message;
         }
       };
-      // Test if button is clickable
-      loginBtn.addEventListener('click', () => console.log('[AUTH] Button click event fired!'));
-    } else {
-      console.error('[AUTH] Login button NOT FOUND in DOM!');
     }
 
-    const showRegBtn = document.getElementById('show-register');
-    console.log('[AUTH] Show register link found:', !!showRegBtn);
-    if (showRegBtn) {
-      showRegBtn.onclick = () => {
-        console.log('[AUTH] Switching to register form');
-        document.getElementById('login-form').style.display = 'none';
-        document.getElementById('register-form').style.display = 'block';
-      };
-    }
-
-    const showLoginBtn = document.getElementById('show-login');
-    console.log('[AUTH] Show login link found:', !!showLoginBtn);
-    if (showLoginBtn) {
-      showLoginBtn.onclick = () => {
-        console.log('[AUTH] Switching to login form');
-        document.getElementById('register-form').style.display = 'none';
-        document.getElementById('login-form').style.display = 'block';
-      };
-    }
-
-    const regBtn = document.getElementById('register-btn');
-    console.log('[AUTH] Register button found:', !!regBtn);
-    if (regBtn) {
-      regBtn.onclick = async (event) => {
-        console.log('[AUTH] Register button clicked!', event);
+    // Register Form Submit
+    const regForm = document.getElementById('register-form');
+    console.log('[AUTH] Register form found:', !!regForm);
+    if (regForm) {
+      regForm.onsubmit = async (e) => {
+        e.preventDefault();
+        console.log('[AUTH] Register form submitted!');
         const u = document.getElementById('reg-username').value;
-        const e = document.getElementById('reg-email').value;
+        const email = document.getElementById('reg-email').value;
         const p = document.getElementById('reg-password').value;
         console.log('[AUTH] Attempting registration for user:', u);
         try {
-          currentUser = await api('/api/auth/register', { method: 'POST', body: { username: u, email: e, password: p } });
+          currentUser = await api('/api/auth/register', { method: 'POST', body: { username: u, email: email, password: p } });
           console.log('[AUTH] Registration successful:', currentUser);
           showApp();
         } catch (err) {
           console.error('[AUTH] Registration failed:', err);
           document.getElementById('register-error').textContent = err.message;
         }
+      };
+    }
+
+    // Switch to Register
+    const showRegLink = document.getElementById('show-register');
+    console.log('[AUTH] Show register link found:', !!showRegLink);
+    if (showRegLink) {
+      showRegLink.onclick = (e) => {
+        e.preventDefault();
+        console.log('[AUTH] Switching to register form');
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'block';
+      };
+    }
+
+    // Switch to Login
+    const showLoginLink = document.getElementById('show-login');
+    console.log('[AUTH] Show login link found:', !!showLoginLink);
+    if (showLoginLink) {
+      showLoginLink.onclick = (e) => {
+        e.preventDefault();
+        console.log('[AUTH] Switching to login form');
+        document.getElementById('register-form').style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
       };
     }
 
