@@ -710,52 +710,72 @@
   // --- Auth & Modals ---
   // Login/Reg handlers helper
   function attachAuthListeners() {
+    console.log('[AUTH] Attaching auth listeners...');
+
     const loginBtn = document.getElementById('login-btn');
+    console.log('[AUTH] Login button found:', !!loginBtn);
     if (loginBtn) {
-      loginBtn.onclick = async () => {
-        console.log('Login clicked');
+      loginBtn.onclick = async (event) => {
+        console.log('[AUTH] Login button clicked!', event);
         const u = document.getElementById('login-username').value;
         const p = document.getElementById('login-password').value;
+        console.log('[AUTH] Attempting login for user:', u);
         try {
           currentUser = await api('/api/auth/login', { method: 'POST', body: { username: u, password: p } });
+          console.log('[AUTH] Login successful:', currentUser);
           showApp();
         } catch (e) {
+          console.error('[AUTH] Login failed:', e);
           document.getElementById('login-error').textContent = e.message;
         }
       };
+      // Test if button is clickable
+      loginBtn.addEventListener('click', () => console.log('[AUTH] Button click event fired!'));
+    } else {
+      console.error('[AUTH] Login button NOT FOUND in DOM!');
     }
 
     const showRegBtn = document.getElementById('show-register');
+    console.log('[AUTH] Show register link found:', !!showRegBtn);
     if (showRegBtn) {
       showRegBtn.onclick = () => {
+        console.log('[AUTH] Switching to register form');
         document.getElementById('login-form').style.display = 'none';
         document.getElementById('register-form').style.display = 'block';
       };
     }
 
     const showLoginBtn = document.getElementById('show-login');
+    console.log('[AUTH] Show login link found:', !!showLoginBtn);
     if (showLoginBtn) {
       showLoginBtn.onclick = () => {
+        console.log('[AUTH] Switching to login form');
         document.getElementById('register-form').style.display = 'none';
         document.getElementById('login-form').style.display = 'block';
       };
     }
 
     const regBtn = document.getElementById('register-btn');
+    console.log('[AUTH] Register button found:', !!regBtn);
     if (regBtn) {
-      regBtn.onclick = async () => {
-        console.log('Register clicked');
+      regBtn.onclick = async (event) => {
+        console.log('[AUTH] Register button clicked!', event);
         const u = document.getElementById('reg-username').value;
         const e = document.getElementById('reg-email').value;
         const p = document.getElementById('reg-password').value;
+        console.log('[AUTH] Attempting registration for user:', u);
         try {
           currentUser = await api('/api/auth/register', { method: 'POST', body: { username: u, email: e, password: p } });
+          console.log('[AUTH] Registration successful:', currentUser);
           showApp();
         } catch (err) {
+          console.error('[AUTH] Registration failed:', err);
           document.getElementById('register-error').textContent = err.message;
         }
       };
     }
+
+    console.log('[AUTH] All auth listeners attached');
   }
 
   // Expose App Global
@@ -771,14 +791,27 @@
         document.getElementById('add-friend-modal').style.display = 'none';
         showToast('Success', 'Friend request sent');
       } catch (e) { alert(e.message); }
-    }
+    },
+    // Expose for debugging
+    attachAuthListeners,
+    init
   });
 
-  // Start
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM Content Loaded - Initializing App');
+  // Start - with fallback for already-loaded DOM
+  function startApp() {
+    console.log('[INIT] Starting app initialization...');
+    console.log('[INIT] Document ready state:', document.readyState);
     attachAuthListeners();
     init();
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    console.log('[INIT] DOM still loading, waiting for DOMContentLoaded...');
+    document.addEventListener('DOMContentLoaded', startApp);
+  } else {
+    console.log('[INIT] DOM already loaded, starting immediately...');
+    startApp();
+  }
 
 })();
+
